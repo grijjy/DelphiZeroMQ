@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{EE351056-6F74-48B7-B8AD-6A8AB24766FE}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ExampleBroker\ExampleBroker.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ExampleWorker\ExampleWorker.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ExampleClient\ExampleClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ExampleBroker">
+        <MSBuild Projects="ExampleBroker\ExampleBroker.dproj"/>
+    </Target>
+    <Target Name="ExampleBroker:Clean">
+        <MSBuild Projects="ExampleBroker\ExampleBroker.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ExampleBroker:Make">
+        <MSBuild Projects="ExampleBroker\ExampleBroker.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ExampleWorker">
+        <MSBuild Projects="ExampleWorker\ExampleWorker.dproj"/>
+    </Target>
+    <Target Name="ExampleWorker:Clean">
+        <MSBuild Projects="ExampleWorker\ExampleWorker.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ExampleWorker:Make">
+        <MSBuild Projects="ExampleWorker\ExampleWorker.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ExampleClient">
+        <MSBuild Projects="ExampleClient\ExampleClient.dproj"/>
+    </Target>
+    <Target Name="ExampleClient:Clean">
+        <MSBuild Projects="ExampleClient\ExampleClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ExampleClient:Make">
+        <MSBuild Projects="ExampleClient\ExampleClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ExampleBroker;ExampleWorker;ExampleClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ExampleBroker:Clean;ExampleWorker:Clean;ExampleClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ExampleBroker:Make;ExampleWorker:Make;ExampleClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

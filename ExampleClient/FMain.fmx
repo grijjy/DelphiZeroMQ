@@ -1,0 +1,44 @@
+object FormMain: TFormMain
+  Left = 0
+  Top = 0
+  Caption = 'SendMessage'
+  ClientHeight = 117
+  ClientWidth = 293
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object SendRequest: TButton
+    Position.X = 24.000000000000000000
+    Position.Y = 72.000000000000000000
+    Size.Width = 241.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Send Request'
+    OnClick = SendRequestClick
+  end
+  object EditBroker: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 2
+    Text = 'tcp://localhost:1234'
+    Position.X = 24.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 153.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object LabelBroker: TLabel
+    Position.X = 24.000000000000000000
+    Position.Y = 16.000000000000000000
+    Text = 'Broker'
+    TabOrder = 3
+  end
+  object ButtonApply: TButton
+    Position.X = 184.000000000000000000
+    Position.Y = 32.000000000000000000
+    TabOrder = 4
+    Text = 'Apply'
+    OnClick = ButtonApplyClick
+  end
+end
