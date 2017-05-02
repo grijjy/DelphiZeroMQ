@@ -56,7 +56,7 @@ make install
 ldconfig
 ```
 
-Building the libraries for iOS and Android is rather complicated.  We have developed our own scripts for each platform to ease the process.  It would require a full article just to cover those topics individually so we are simply[ including the already built binary libraries](https://github.com/grijjy/DelphiZeroMQ/Lib/).  Those libraries need to be included in your Delphi project path so the linker can include them during the build process.
+Building the libraries for iOS and Android is rather complicated.  We have developed our own scripts for each platform to ease the process.  It would require a full article just to cover those topics individually so we are simply[ including the already built binary libraries](https://github.com/grijjy/DelphiZeroMQ/tree/master/Lib).  Those libraries need to be included in your Delphi project path so the linker can include them during the build process.
 
 ## Broker
 The Broker in the Majordomo protocol connects a given set of clients, to a single Broker and a pool of Workers.  Clients connect to the Broker, but so do the Workers.  As best described in the RFC,
@@ -294,7 +294,7 @@ TZMessage.PopProtocolBuffer
 TZMessage.PeekProtocolBuffer
 ```
 
-For more information on our [Google Protocol Buffers implementation see our article](https://blog.grijjy.com/2017/04/25/binary-serialization-with-google-protocol-buffers/).
+For more information on our Google Protocol Buffers implementation [see our article](https://blog.grijjy.com/2017/04/25/binary-serialization-with-google-protocol-buffers/).
 
 ## Encryption using CURVE and LibSodium
 The default example we do not enable the encryption features found in LibSodium.  However, enabling ZeroMQ's supported encryption is relatively straight-forward.  
