@@ -1,6 +1,8 @@
 unit PascalZMQ;
 { Pascal version of the various CZMQ helpers }
 
+{$DEFINE ZMQ_VERIFY_HASH}
+
 { Converting from ZMQ/CZMQ to PascalZMQ:
 
   ZMQ/CZMQ        -->         PascalZMQ
@@ -851,7 +853,9 @@ uses
   Winapi.Windows,
   Winapi.ImageHlp,
   {$ENDIF}
+  {$IFDEF ZMQ_VERIFY_HASH}
   System.Hash,
+  {$ENDIF}
   Grijjy.ProtocolBuffers,
   Grijjy.Bson;
 
@@ -1719,10 +1723,13 @@ function TZMessage.Receive(const ASocketHandle: Pointer;
 var
   Frame: PZFrame;
   Frames: array of PZFrame;
-  Count, I, J, StartFrame: Integer;
+  Count, I, J: Integer;
   RcvMore, RcvMoreSize: NativeInt;
+  {$IFDEF ZMQ_VERIFY_HASH}
+  StartFrame: Integer;
   ExpectedHashValue, ActualHashValue: Cardinal;
   Hash: THashBobJenkins;
+  {$ENDIF}
 begin
   Assert(Assigned(ASocketHandle));
   Assert(FCount = 0);
@@ -1765,6 +1772,7 @@ begin
     Result := (Frame.Size = 4);
     if (Result) then
     begin
+      {$IFDEF ZMQ_VERIFY_HASH}
       ExpectedHashValue := PCardinal(Frame.Data)^;
 
       { Calculate hash of frames }
@@ -1784,6 +1792,7 @@ begin
       { Check hash and returns False if it doesn't match (in that case
         TZSocket.Receive will return nil. }
       Result := (ActualHashValue = ExpectedHashValue);
+      {$ENDIF}
     end;
 
     { Free and remove hash frame }
@@ -1816,15 +1825,18 @@ function TZMessage.Send(const ASocketHandle: Pointer;
 var
   I: Integer;
   Frame: PZFrame;
+  {$IFDEF ZMQ_VERIFY_HASH}
   Hash: THashBobJenkins;
-  HashValue: Cardinal;
   StartFrame: Integer;
+  {$ENDIF}
+  HashValue: Cardinal;
 begin
   Assert(Assigned(ASocketHandle));
   try
     if (FCount = 0) then
       Exit(False);
 
+    {$IFDEF ZMQ_VERIFY_HASH}
     { We create an incremental hash value for all frames. }
     Hash.Reset;
 
@@ -1840,6 +1852,7 @@ begin
       Frame := FFrames[I];
       Hash.Update(Frame.Data^, Frame.Size);
     end;
+    {$ENDIF}
 
     for I := FCount - 1 downto 0 do
     begin
@@ -1851,8 +1864,12 @@ begin
       Dec(FCount);
     end;
 
+    {$IFDEF ZMQ_VERIFY_HASH}
     { Send additional frame with hash }
     HashValue := Hash.HashAsInteger;
+    {$ELSE}
+    HashValue := 0;
+    {$ENDIF}
     Frame := TZFrame.Create(HashValue, 4);
     if (not Frame.Send(ASocketHandle, False)) then
       Exit(False);
