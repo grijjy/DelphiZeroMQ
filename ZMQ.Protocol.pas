@@ -235,10 +235,6 @@ var
   PollThreads: Integer;
 begin
   inherited Create;
-  {$IFDEF DEBUG}
-  NameThreadForDebugging('TZMQProtocol');
-  {$ENDIF}
-
   { initialize }
   FLastError := 0;
   FHeartbeats := AHeartbeats;
@@ -618,6 +614,9 @@ var
   SentFrom: PZFrame;
   Command: TZMQCommand;
 begin
+  {$IFDEF DEBUG}
+  NameThreadForDebugging('TZMQProtocol');
+  {$ENDIF}
   while not Terminated do
   begin
     case FState of
