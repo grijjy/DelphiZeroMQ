@@ -5,13 +5,37 @@ interface
 
 const
   {$IF Defined(MSWINDOWS)}
-  ZMQ_LIB = 'libzmq.dll';
+    {$IFDEF WIN64}
+    ZMQ_LIB = 'libzmq-win64.dll';
+    _PU = '';
+    {$ELSE}
+    ZMQ_LIB = 'libzmq-win32.dll';
+    _PU = '';
+    {$ENDIF}
   {$ELSEIF Defined(LINUX)}
-  ZMQ_LIB = 'libzmq.so';
-  {$ELSEIF Defined(IOS)}
-  ZMQ_LIB = 'libzmq.a';
+  ZMQ_LIB = 'libzmq-linux64.so';
+  _PU = '';
+  {$ELSEIF Defined(MACOS)}
+    {$IFDEF IOS}
+      {$IFDEF CPUARM}
+      ZMQ_LIB = 'libzmq-ios.a';
+      _PU = '';
+      {$ELSE}
+      ZMQ_LIB = 'libzmq-iossim.dylib'; { not supported }
+      _PU = '';
+      {$ENDIF}
+    {$ELSE}
+      {$IFDEF MACOS64}
+      ZMQ_LIB = 'libzmq-osx64.dylib';
+      _PU = '';
+      {$ELSE}
+      ZMQ_LIB = 'libzmq-osx32.dylib';
+      _PU = '_';
+      {$ENDIF}
+    {$ENDIF}
   {$ELSEIF Defined(ANDROID)}
-  ZMQ_LIB = 'libzmq.a';
+  ZMQ_LIB = 'libzmq-android.a';
+  _PU = '';
   {$ENDIF}
 
 const
@@ -61,44 +85,44 @@ type
   pzmq_pollitem_t = ^zmq_pollitem_t;
 
   { ZeroMQ contexts }
-  function zmq_ctx_new(): Pointer; cdecl; external ZMQ_LIB name 'zmq_ctx_new'
+  function zmq_ctx_new(): Pointer; cdecl; external ZMQ_LIB name _PU + 'zmq_ctx_new'
     {$IF Defined(CPUARM)}
       {$IF Defined(IOS)}
-      dependency 'c++' dependency 'sodium'
+      dependency 'c++'
       {$ELSEIF Defined(ANDROID)}
-      dependency 'gnustl_static' dependency 'sodium'
+      dependency 'gnustl_static'
       {$ENDIF}
     {$ENDIF};
 
-  function zmq_ctx_term(context: Pointer): Integer; cdecl; external ZMQ_LIB name 'zmq_ctx_term';
+  function zmq_ctx_term(context: Pointer): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_ctx_term';
 
   { ZeroMQ messages }
-  function zmq_msg_init(msg: pzmq_msg_t): Integer; cdecl; external ZMQ_LIB name 'zmq_msg_init';
-  function zmq_msg_init_size(msg: pzmq_msg_t; size: NativeUInt): Integer; cdecl; external ZMQ_LIB name 'zmq_msg_init_size';
-  function zmq_msg_send(msg: pzmq_msg_t; socket: Pointer; flags: Integer): Integer; cdecl; external ZMQ_LIB name 'zmq_msg_send';
-  function zmq_msg_recv(msg: pzmq_msg_t; socket: Pointer; flags: Integer): Integer; cdecl; external ZMQ_LIB name 'zmq_msg_recv';
-  function zmq_msg_close(msg: pzmq_msg_t): Integer; cdecl; external ZMQ_LIB name 'zmq_msg_close';
-  function zmq_msg_data(msg: pzmq_msg_t): Pointer; cdecl; external ZMQ_LIB name 'zmq_msg_data';
-  function zmq_msg_size(msg: pzmq_msg_t): NativeUInt; cdecl; external ZMQ_LIB name 'zmq_msg_size';
+  function zmq_msg_init(msg: pzmq_msg_t): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_msg_init';
+  function zmq_msg_init_size(msg: pzmq_msg_t; size: NativeUInt): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_msg_init_size';
+  function zmq_msg_send(msg: pzmq_msg_t; socket: Pointer; flags: Integer): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_msg_send';
+  function zmq_msg_recv(msg: pzmq_msg_t; socket: Pointer; flags: Integer): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_msg_recv';
+  function zmq_msg_close(msg: pzmq_msg_t): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_msg_close';
+  function zmq_msg_data(msg: pzmq_msg_t): Pointer; cdecl; external ZMQ_LIB name _PU + 'zmq_msg_data';
+  function zmq_msg_size(msg: pzmq_msg_t): NativeUInt; cdecl; external ZMQ_LIB name _PU + 'zmq_msg_size';
 
   { ZeroMQ sockets }
-  function zmq_socket(context: Pointer; _type: Integer): Pointer; cdecl; external ZMQ_LIB name 'zmq_socket';
-  function zmq_close(socket: Pointer): Integer; cdecl; external ZMQ_LIB name 'zmq_close';
-  function zmq_setsockopt(socket: Pointer; option_name: Integer; const option_value: Pointer; option_len: NativeUInt): Integer; cdecl; external ZMQ_LIB name 'zmq_setsockopt';
-  function zmq_getsockopt (socket: Pointer; option_name: Integer; option_value: Pointer; option_len: PNativeUInt): Integer; cdecl; external ZMQ_LIB name 'zmq_getsockopt';
-  function zmq_bind(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl; external ZMQ_LIB name 'zmq_bind';
-  function zmq_connect(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl; external ZMQ_LIB name 'zmq_connect';
-  function zmq_unbind(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl; external ZMQ_LIB name 'zmq_unbind';
-  function zmq_disconnect(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl; external ZMQ_LIB name 'zmq_disconnect';
-  function zmq_sendmsg(socket: Pointer; msg: pzmq_msg_t; flags: Integer): Integer; cdecl; external ZMQ_LIB name 'zmq_sendmsg';
-  function zmq_recvmsg(socket: Pointer; msg: pzmq_msg_t; flags: Integer): Integer; cdecl; external ZMQ_LIB name 'zmq_recvmsg';
+  function zmq_socket(context: Pointer; _type: Integer): Pointer; cdecl; external ZMQ_LIB name _PU + 'zmq_socket';
+  function zmq_close(socket: Pointer): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_close';
+  function zmq_setsockopt(socket: Pointer; option_name: Integer; const option_value: Pointer; option_len: NativeUInt): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_setsockopt';
+  function zmq_getsockopt (socket: Pointer; option_name: Integer; option_value: Pointer; option_len: PNativeUInt): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_getsockopt';
+  function zmq_bind(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_bind';
+  function zmq_connect(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_connect';
+  function zmq_unbind(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_unbind';
+  function zmq_disconnect(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_disconnect';
+  function zmq_sendmsg(socket: Pointer; msg: pzmq_msg_t; flags: Integer): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_sendmsg';
+  function zmq_recvmsg(socket: Pointer; msg: pzmq_msg_t; flags: Integer): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_recvmsg';
 
   { ZeroMQ polling }
-  function zmq_poll(items: pzmq_pollitem_t; nitems: Integer; timeout: {$IFDEF POSIX}NativeInt{$ELSE}Integer{$ENDIF}): Integer; cdecl; external ZMQ_LIB name 'zmq_poll';
+  function zmq_poll(items: pzmq_pollitem_t; nitems: Integer; timeout: {$IFDEF POSIX}NativeInt{$ELSE}Integer{$ENDIF}): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_poll';
 
   { ZeroMQ Curve security }
-  function zmq_z85_decode(dest: PByte; str: MarshaledAString): PByte; cdecl; external ZMQ_LIB name 'zmq_z85_decode';
-  function zmq_curve_keypair(z85_public_key, z85_secret_key: MarshaledAString): Integer; cdecl; external ZMQ_LIB name 'zmq_curve_keypair';
+  function zmq_z85_decode(dest: PByte; str: MarshaledAString): PByte; cdecl; external ZMQ_LIB name _PU + 'zmq_z85_decode';
+  function zmq_curve_keypair(z85_public_key, z85_secret_key: MarshaledAString): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_curve_keypair';
 
 implementation
 
