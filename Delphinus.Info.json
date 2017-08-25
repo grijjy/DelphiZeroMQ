@@ -1,0 +1,18 @@
+{  
+   "id":"{EE351056-6F74-48B7-B8AD-6A8AB24766FE}",
+   "name":"Grijjy ZeroMQ",
+   "picture":"Logo.png",
+   "license_type":"Simplified BSD",
+   "license_file":"License.txt",
+   "platforms":"Win32;Win64;OSX32;Android;iOSDevice32;iOSDevice64;Linux64",
+   "package_compiler_min":31,
+   "package_compiler_max":32,
+   "compiler_min":31,
+   "compiler_max":32,
+   "dependencies":[  
+      {  
+         "id":"{D8BC19AB-3A1A-4D3C-A407-A20C396128E7}",
+         "version_min":"1.0.0"
+      }
+   ]
+}
