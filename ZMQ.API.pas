@@ -3,6 +3,12 @@ unit ZMQ.API;
 
 interface
 
+{$IF Defined(ANDROID) or Defined(IOS)}
+  {$DEFINE STATIC_BINDING}
+{$ELSE}
+  {$DEFINE DYNAMIC_BINDING}
+{$ENDIF}
+
 const
   {$IF Defined(MSWINDOWS)}
     {$IFDEF WIN64}
@@ -84,6 +90,7 @@ type
   end;
   pzmq_pollitem_t = ^zmq_pollitem_t;
 
+{$IFDEF STATIC_BINDING}
   { ZeroMQ contexts }
   function zmq_ctx_new(): Pointer; cdecl; external ZMQ_LIB name _PU + 'zmq_ctx_new'
     {$IF Defined(CPUARM)}
@@ -123,7 +130,135 @@ type
   { ZeroMQ Curve security }
   function zmq_z85_decode(dest: PByte; str: MarshaledAString): PByte; cdecl; external ZMQ_LIB name _PU + 'zmq_z85_decode';
   function zmq_curve_keypair(z85_public_key, z85_secret_key: MarshaledAString): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_curve_keypair';
+{$ENDIF}
+
+{$IFDEF DYNAMIC_BINDING}
+var
+  { ZeroMQ contexts }
+  zmq_ctx_new: function: Pointer; cdecl = nil;
+  zmq_ctx_term: function(context: Pointer): Integer; cdecl = nil;
+
+  { ZeroMQ messages }
+  zmq_msg_init: function(msg: pzmq_msg_t): Integer; cdecl = nil;
+  zmq_msg_init_size: function(msg: pzmq_msg_t; size: NativeUInt): Integer; cdecl = nil;
+  zmq_msg_send: procedure(msg: pzmq_msg_t; socket: Pointer; flags: Integer); cdecl = nil;
+  zmq_msg_recv: procedure(msg: pzmq_msg_t; socket: Pointer; flags: Integer); cdecl = nil;
+  zmq_msg_close: function(msg: pzmq_msg_t): Integer; cdecl = nil;
+  zmq_msg_data: function(msg: pzmq_msg_t): Pointer; cdecl = nil;
+  zmq_msg_size: function(msg: pzmq_msg_t): NativeUInt; cdecl = nil;
+
+  { ZeroMQ sockets }
+  zmq_socket: function(context: Pointer; _type: Integer): Pointer; cdecl = nil;
+  zmq_close: function(socket: Pointer): Integer; cdecl = nil;
+  zmq_setsockopt: function(socket: Pointer; option_name: Integer; const option_value: Pointer; option_len: NativeUInt): Integer; cdecl = nil;
+  zmq_getsockopt: function(socket: Pointer; option_name: Integer; option_value: Pointer; option_len: PNativeUInt): Integer; cdecl = nil;
+  zmq_bind: function(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl = nil;
+  zmq_connect: function(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl = nil;
+  zmq_unbind: function(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl = nil;
+  zmq_disconnect: function(socket: Pointer; const endpoint: MarshaledAString): Integer; cdecl = nil;
+  zmq_sendmsg: function(socket: Pointer; msg: pzmq_msg_t; flags: Integer): Integer; cdecl = nil;
+  zmq_recvmsg: function(socket: Pointer; msg: pzmq_msg_t; flags: Integer): Integer; cdecl = nil;
+
+  { ZeroMQ polling }
+  zmq_poll: function(items: pzmq_pollitem_t; nitems: Integer; timeout: {$IFDEF POSIX}NativeInt{$ELSE}Integer{$ENDIF}): Integer; cdecl = nil;
+
+  { ZeroMQ Curve security }
+  zmq_z85_decode: function(dest: PByte; str: MarshaledAString): PByte; cdecl = nil;
+  zmq_curve_keypair: function(z85_public_key, z85_secret_key: MarshaledAString): Integer; cdecl = nil;
+{$ENDIF}
 
 implementation
+
+uses
+  {$IFDEF MSWINDOWS}
+  Windows,
+  {$ENDIF}
+  System.SysUtils;
+
+{$IFDEF DYNAMIC_BINDING}
+var
+  ZeroMQHandle: HMODULE;
+
+{ Library }
+
+function LoadLib(const ALibFile: String): HMODULE;
+begin
+  Result := LoadLibrary(PChar(ALibFile));
+  if (Result = 0) then
+    raise Exception.CreateFmt('load %s failed', [ALibFile]);
+end;
+
+function FreeLib(ALibModule: HMODULE): Boolean;
+begin
+  Result := FreeLibrary(ALibModule);
+end;
+
+function GetProc(AModule: HMODULE; const AProcName: String): Pointer;
+begin
+  {$IFDEF MACOS}
+  Result := GetProcAddress(AModule, PChar('_' + AProcName));
+  {$ELSE}
+  Result := GetProcAddress(AModule, PChar(AProcName));
+  {$ENDIF}
+  if (Result = nil) then
+    raise Exception.CreateFmt('%s is not found', [AProcName]);
+end;
+
+procedure LoadZeroMQ;
+begin
+  if (ZeroMQHandle <> 0) then Exit;
+  ZeroMQHandle := LoadLib(ZMQ_LIB);
+  if (ZeroMQHandle = 0) then
+  begin
+    raise Exception.CreateFmt('Load %s failed', [ZMQ_LIB]);
+    Exit;
+  end;
+
+  { ZeroMQ contexts }
+  zmq_ctx_new := GetProc(ZeroMQHandle, 'zmq_ctx_new');
+  zmq_ctx_term := GetProc(ZeroMQHandle, 'zmq_ctx_term');
+
+  { ZeroMQ messages }
+  zmq_msg_init := GetProc(ZeroMQHandle, 'zmq_msg_init');
+  zmq_msg_init_size := GetProc(ZeroMQHandle, 'zmq_msg_init_size');
+  zmq_msg_send := GetProc(ZeroMQHandle, 'zmq_msg_send');
+  zmq_msg_recv := GetProc(ZeroMQHandle, 'zmq_msg_recv');
+  zmq_msg_close := GetProc(ZeroMQHandle, 'zmq_msg_close');
+  zmq_msg_data := GetProc(ZeroMQHandle, 'zmq_msg_data');
+  zmq_msg_size := GetProc(ZeroMQHandle, 'zmq_msg_size');
+
+  { ZeroMQ sockets }
+  zmq_socket := GetProc(ZeroMQHandle, 'zmq_socket');
+  zmq_close := GetProc(ZeroMQHandle, 'zmq_close');
+  zmq_setsockopt := GetProc(ZeroMQHandle, 'zmq_setsockopt');
+  zmq_getsockopt := GetProc(ZeroMQHandle, 'zmq_getsockopt');
+  zmq_bind := GetProc(ZeroMQHandle, 'zmq_bind');
+  zmq_connect := GetProc(ZeroMQHandle, 'zmq_connect');
+  zmq_unbind := GetProc(ZeroMQHandle, 'zmq_unbind');
+  zmq_disconnect := GetProc(ZeroMQHandle, 'zmq_disconnect');
+  zmq_sendmsg := GetProc(ZeroMQHandle, 'zmq_sendmsg');
+  zmq_recvmsg := GetProc(ZeroMQHandle, 'zmq_recvmsg');
+
+  { ZeroMQ polling }
+  zmq_poll := GetProc(ZeroMQHandle, 'zmq_poll');
+
+  { ZeroMQ Curve security }
+  zmq_z85_decode := GetProc(ZeroMQHandle, 'zmq_z85_decode');
+  zmq_curve_keypair := GetProc(ZeroMQHandle, 'zmq_curve_keypair');
+end;
+
+procedure UnloadZeroMQ;
+begin
+  if (ZeroMQHandle = 0) then Exit;
+  FreeLib(ZeroMQHandle);
+  ZeroMQHandle := 0;
+end;
+
+initialization
+  LoadZeroMQ;
+
+finalization
+  UnloadZeroMQ;
+{$ENDIF}
 
 end.
