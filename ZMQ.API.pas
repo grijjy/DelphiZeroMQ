@@ -184,8 +184,6 @@ var
 function LoadLib(const ALibFile: String): HMODULE;
 begin
   Result := LoadLibrary(PChar(ALibFile));
-  if (Result = 0) then
-    raise Exception.CreateFmt('load %s failed', [ALibFile]);
 end;
 
 function FreeLib(ALibModule: HMODULE): Boolean;
@@ -201,7 +199,12 @@ begin
   Result := GetProcAddress(AModule, PChar(AProcName));
   {$ENDIF}
   if (Result = nil) then
+  begin
+    {$IFDEF CONSOLE}
+    Writeln(Format('%s is not found', [AProcName]));
+    {$ENDIF}
     raise Exception.CreateFmt('%s is not found', [AProcName]);
+  end;
 end;
 
 procedure LoadZeroMQ;
@@ -210,7 +213,10 @@ begin
   ZeroMQHandle := LoadLib(ZMQ_LIB);
   if (ZeroMQHandle = 0) then
   begin
-    raise Exception.CreateFmt('Load %s failed', [ZMQ_LIB]);
+    {$IFDEF CONSOLE}
+    Writeln(Format('Load %s failed.  You must deploy the library with your module.', [ZMQ_LIB]));
+    {$ENDIF}
+    raise Exception.CreateFmt('Load %s failed.  You must deploy the library with your module.', [ZMQ_LIB]);
     Exit;
   end;
 
