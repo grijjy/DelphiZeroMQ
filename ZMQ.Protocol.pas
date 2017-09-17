@@ -794,9 +794,6 @@ begin
   FParent := AParent;
   FContext := AContext;
   inherited Create;
-  {$IFDEF DEBUG}
-  NameThreadForDebugging('TZMQPollThread');
-  {$ENDIF}
 end;
 
 destructor TZMQPollThread.Destroy;
@@ -825,6 +822,10 @@ var
   Msg: PZMessage;
   Command: TZMQCommand;
 begin
+  {$IFDEF DEBUG}
+  NameThreadForDebugging('TZMQPollThread');
+  {$ENDIF}
+
   { connect to parent zmq context to recv tasks }
   FSocket := TZSocket.Create(FContext, TZSocketType.Pull);
   FSocket.Connect('inproc://workers');
