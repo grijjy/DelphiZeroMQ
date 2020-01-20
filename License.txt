@@ -2,7 +2,7 @@ PascalZMQ, ZMQ.BrokerProtocol, ZMQ.ClientProtocol, ZMQ.WorkerProtocol, ZMQ.Proto
 
 -------------------------------------------------------------------------------
 
-Copyright (c) 2017 by Grijjy, Inc.
+Copyright (c) 2020 by Grijjy, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
