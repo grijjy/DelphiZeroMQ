@@ -3,7 +3,7 @@ unit ZMQ.API;
 
 interface
 
-{$IF Defined(ANDROID) or Defined(IOS)}
+{$IF Defined(ANDROID) or Defined(IOS) or Defined(MACOS64)}
   {$DEFINE STATIC_BINDING}
 {$ELSE}
   {$DEFINE DYNAMIC_BINDING}
@@ -32,15 +32,18 @@ const
       {$ENDIF}
     {$ELSE}
       {$IFDEF MACOS64}
-      ZMQ_LIB = 'libzmq-osx64.dylib';
+      ZMQ_LIB = 'libzmq-osx64.a';
       _PU = '';
       {$ELSE}
       ZMQ_LIB = 'libzmq-osx32.dylib';
       _PU = '_';
       {$ENDIF}
     {$ENDIF}
-  {$ELSEIF Defined(ANDROID)}
-  ZMQ_LIB = 'libzmq-android.a';
+  {$ELSEIF Defined(ANDROID64)}
+  ZMQ_LIB = 'libzmq-android64.a';
+  _PU = '';
+  {$ELSEIF Defined(ANDROID32)}
+  ZMQ_LIB = 'libzmq-android32.a';
   _PU = '';
   {$ENDIF}
 
@@ -93,13 +96,21 @@ type
 {$IFDEF STATIC_BINDING}
   { ZeroMQ contexts }
   function zmq_ctx_new(): Pointer; cdecl; external ZMQ_LIB name _PU + 'zmq_ctx_new'
-    {$IF Defined(CPUARM)}
-      {$IF Defined(IOS)}
-      dependency 'c++'
-      {$ELSEIF Defined(ANDROID)}
-      dependency 'gnustl_static'
+  {$IF Defined(MACOS)}
+    {$IFDEF IOS}
+      {$IFDEF CPUARM}
+        dependency 'c++'
       {$ENDIF}
-    {$ENDIF};
+    {$ELSE}
+      {$IFDEF MACOS64}
+        dependency 'c++'
+      {$ENDIF}
+    {$ENDIF}
+  {$ELSEIF Defined(ANDROID64)}
+    dependency 'c++_static' dependency 'c++abi' // -lc++_static -lc++abi
+  {$ELSEIF Defined(ANDROID32)}
+    dependency 'gnustl_static'
+  {$ENDIF};
 
   function zmq_ctx_term(context: Pointer): Integer; cdecl; external ZMQ_LIB name _PU + 'zmq_ctx_term';
 
@@ -177,7 +188,7 @@ uses
 
 {$IFDEF DYNAMIC_BINDING}
 var
-  ZeroMQHandle: HMODULE;
+  ZeroMQHandle: HMODULE = 0;
 
 { Library }
 
@@ -193,11 +204,7 @@ end;
 
 function GetProc(AModule: HMODULE; const AProcName: String): Pointer;
 begin
-  {$IFDEF MACOS}
-  Result := GetProcAddress(AModule, PChar('_' + AProcName));
-  {$ELSE}
   Result := GetProcAddress(AModule, PChar(AProcName));
-  {$ENDIF}
   if (Result = nil) then
   begin
     {$IFDEF CONSOLE}
