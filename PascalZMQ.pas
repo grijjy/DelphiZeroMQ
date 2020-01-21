@@ -1144,14 +1144,14 @@ end;
 
 class function TZFrame.Create: PZFrame;
 begin
-  GetMem(Result, SizeOf(TZFrame) {$IFDEF TRACK_MEMORY}, '_PZFrame'{$ENDIF});
+  GetMem(Result, SizeOf(TZFrame));
   FillChar(Result^, SizeOf(TZFrame), 0);
   zmq_msg_init(@Result.FMsg);
 end;
 
 class function TZFrame.Create(const AData; const ASize: Integer): PZFrame;
 begin
-  GetMem(Result, SizeOf(TZFrame) {$IFDEF TRACK_MEMORY}, '_PZFrame'{$ENDIF});
+  GetMem(Result, SizeOf(TZFrame));
   FillChar(Result^, SizeOf(TZFrame), 0);
   if (ASize > 0) then
   begin
@@ -1183,7 +1183,7 @@ begin
   if (@Self <> nil) then
   begin
     zmq_msg_close(@FMsg);
-    FreeMem(@Self {$IFDEF TRACK_MEMORY}, '_PZFrame'{$ENDIF});
+    FreeMem(@Self);
   end;
 end;
 
@@ -1282,7 +1282,7 @@ end;
 
 class function TZMessage.Create: PZMessage;
 begin
-  GetMem(Result, SizeOf(TZMessage) {$IFDEF TRACK_MEMORY}, '_PZMessage'{$ENDIF});
+  GetMem(Result, SizeOf(TZMessage));
   FillChar(Result^, SizeOf(TZMessage), 0);
   Result.FCursor := -1;
   Result.FFrames := @Result.FStaticFrames[0];
@@ -1308,7 +1308,7 @@ begin
       FFrames[I].Free;
     if (FFrames <> @FStaticFrames[0]) then
       FreeMem(FFrames);
-    FreeMem(@Self {$IFDEF TRACK_MEMORY}, '_PZMessage'{$ENDIF});
+    FreeMem(@Self);
   end;
 end;
 
