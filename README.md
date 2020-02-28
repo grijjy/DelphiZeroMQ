@@ -323,5 +323,9 @@ The example contained here depends upon part of our [Grijjy Foundation library](
 
 The source code and related example repository are hosted on GitHub at [https://github.com/grijjy/DelphiZeroMQ/](https://github.com/grijjy/DelphiZeroMQ/). 
 
+## Miscellaneous
+You can install [Delphinus package manager](https://github.com/Memnarch/Delphinus/wiki/Installing-Delphinus) and then install our ZeroMQ package there. (Delphinus-Support)
+**Delphinus can also automatically download and install required dependencies** (may require IDE restart to update global paths)
+
 # License
 PascalZMQ, ZMQ.BrokerProtocol, ZMQ.ClientProtocol, ZMQ.WorkerProtocol, ZMQ.Protocol, ZMQ.Shared and the various Example projects are licensed under the Simplified BSD License. See License.txt for details.
